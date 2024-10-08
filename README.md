@@ -1,8 +1,8 @@
-# File Encryption and Decryption Script
+# File Encryption and Decryption Tool
 
 ## Introduction
 
-This script provides a flexible way to encrypt and decrypt files using Python. It supports two methods of key management:
+This Python tool provides a flexible way to encrypt and decrypt files. It supports two methods of key management:
 
 1. **Stored Key Method**: Uses a securely generated key saved to a file (`secret.key`).
 2. **Password-Based Key Derivation**: Derives the encryption key from a user-provided password using PBKDF2 HMAC-SHA256 with a unique, random salt.
@@ -278,4 +278,4 @@ This script is licensed under the [MIT License](LICENSE).
 
 ---
 
-Thank you for using this encryption script. Your feedback and contributions are welcome!
+Thank you for using this encryption tool. Your feedback and contributions are welcome!
