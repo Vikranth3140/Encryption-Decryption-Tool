@@ -7,16 +7,14 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.fernet import Fernet, InvalidToken
 
-def get_key_from_password(password_provided):
+def get_key_from_password(password_provided, salt):
     """
-    Derives a cryptographic key from the provided password using PBKDF2 HMAC-SHA256.
+    Derives a cryptographic key from the provided password and salt using PBKDF2 HMAC-SHA256.
     """
     password = password_provided.encode()  # Convert to bytes
-    # A fixed salt is insecure; in production, use a random salt and store it securely
-    salt = b'\x00\x01\x02\x03\x04\x05\x06\x07'
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
-        length=32,  # Length of the AES key in bytes
+        length=32,  # Length of the Fernet key in bytes
         salt=salt,
         iterations=100000,
     )
@@ -25,9 +23,13 @@ def get_key_from_password(password_provided):
 
 def encrypt_file(file_name, password):
     """
-    Encrypts a file using AES encryption with a key derived from the provided password.
+    Encrypts a file using AES encryption with a key derived from the provided password and a random salt.
     """
-    key = get_key_from_password(password)
+    # Generate a random salt
+    salt = os.urandom(16)
+
+    # Derive the key using the password and the salt
+    key = get_key_from_password(password, salt)
     fernet = Fernet(key)
 
     try:
@@ -38,7 +40,8 @@ def encrypt_file(file_name, password):
 
         encrypted_file_name = file_name + '.encrypted'
         with open(encrypted_file_name, 'wb') as encrypted_file:
-            encrypted_file.write(encrypted)
+            # Prepend the salt to the encrypted data
+            encrypted_file.write(salt + encrypted)
         print(f"File '{file_name}' encrypted successfully as '{encrypted_file_name}'.")
     except FileNotFoundError:
         print(f"File '{file_name}' not found.")
@@ -47,14 +50,17 @@ def encrypt_file(file_name, password):
 
 def decrypt_file(encrypted_file_name, password):
     """
-    Decrypts an encrypted file using AES decryption with a key derived from the provided password.
+    Decrypts an encrypted file using AES decryption with a key derived from the provided password and the salt extracted from the file.
     """
-    key = get_key_from_password(password)
-    fernet = Fernet(key)
-
     try:
         with open(encrypted_file_name, 'rb') as enc_file:
+            # Read the salt and the encrypted data
+            salt = enc_file.read(16)  # Assuming the salt is 16 bytes
             encrypted = enc_file.read()
+
+        # Derive the key using the password and the extracted salt
+        key = get_key_from_password(password, salt)
+        fernet = Fernet(key)
 
         decrypted = fernet.decrypt(encrypted)
 
