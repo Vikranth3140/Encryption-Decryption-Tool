@@ -15,6 +15,7 @@ By combining both methods into a single script, users can choose the approach th
 
 - **Flexible Key Management**: Choose between a stored key or password-derived key.
 - **Strong Encryption**: Utilizes the Fernet symmetric encryption, which is built on AES 128 in CBC mode and uses HMAC for authentication.
+- **Password Strength Enforcement**: Ensures that passwords meet complexity requirements for enhanced security.
 - **Unique Salt Generation**: For password-based encryption, a new random salt is generated for each file.
 - **Password Confirmation**: Prevents accidental typos by requiring password confirmation during encryption.
 - **Cross-Platform**: Works on any system with Python 3.x installed.
@@ -34,8 +35,8 @@ By combining both methods into a single script, users can choose the approach th
 1. **Clone the repository**
 
    ```bash
-    git clone https://github.com/Vikranth3140/Encryption-Decryption-Tool.git
-    ```
+   git clone https://github.com/Vikranth3140/Encryption-Decryption-Tool.git
+   ```
 
 2. **Install Required Libraries**
 
@@ -97,6 +98,14 @@ python script.py -e -p <filename>
 ```
 
 - The script will prompt you to enter and confirm a password.
+
+## Password Strength Requirements
+  - At least **8 characters** long.
+  - Contains at least one **uppercase letter** (`A-Z`).
+  - Contains at least one **lowercase letter** (`a-z`).
+  - Contains at least one **digit** (`0-9`).
+  - Contains at least one **special character** (e.g., `!@#$%^&*()`).
+- If the password doesn't meet these requirements, the script will prompt you to enter a stronger password.
 - A unique, random salt is generated and prepended to the encrypted file.
 
 **Example:**
@@ -108,6 +117,9 @@ python script.py -e -p confidential.txt
 **Output:**
 
 ```
+Enter password for encryption:
+Password must be at least 8 characters long.
+Please choose a stronger password.
 Enter password for encryption:
 Confirm password:
 File 'confidential.txt' encrypted successfully as 'confidential.txt.encrypted' using password-based key derivation.
@@ -179,6 +191,7 @@ File 'confidential.txt.encrypted' decrypted successfully as 'confidential.txt.de
    ```
 
    - Enter and confirm your password when prompted.
+   - Ensure your password meets the complexity requirements.
 
 2. **Decrypt the File**
 
@@ -199,9 +212,11 @@ File 'confidential.txt.encrypted' decrypted successfully as 'confidential.txt.de
 
 - **Password-Based Key Derivation:**
 
-  - **Password Strength:** Use strong, unique passwords. Avoid common words or easily guessable phrases.
+  - **Password Strength Enforcement:** The script enforces strong passwords to enhance security.
+    - Passwords must meet the complexity requirements outlined above.
+    - This reduces the risk of unauthorized access due to weak passwords.
   - **Password Recovery:** If you forget your password, the encrypted data cannot be recovered.
-  - **Salt Usage:** The script uses a unique 16-byte random salt for each encryption operation, enhancing security.
+  - **Salt Usage:** A unique 16-byte random salt is generated for each encryption operation, enhancing security.
 
 - **General Recommendations:**
 
@@ -225,10 +240,6 @@ File 'confidential.txt.encrypted' decrypted successfully as 'confidential.txt.de
 
   - Modify the script to handle files in chunks, reducing memory usage and allowing encryption of large files.
 
-- **Password Strength Enforcement:**
-
-  - Implement checks to ensure that passwords meet complexity requirements.
-
 - **Integrity Verification:**
 
   - Include a Message Authentication Code (MAC) or checksum to verify data integrity upon decryption.
@@ -245,9 +256,13 @@ File 'confidential.txt.encrypted' decrypted successfully as 'confidential.txt.de
 
 ## Troubleshooting
 
-- **"Key file 'secret.key' not found":**
+- **"Password must contain at least one uppercase letter.":**
 
-  - Ensure you've generated the key using `python script.py -g` before encrypting or decrypting with the stored key method.
+  - Ensure your password includes at least one uppercase letter (`A-Z`).
+
+- **"Password must be at least 8 characters long.":**
+
+  - Enter a password that is at least 8 characters in length.
 
 - **"Passwords do not match":**
 
@@ -262,6 +277,10 @@ File 'confidential.txt.encrypted' decrypted successfully as 'confidential.txt.de
 
   - Confirm that you're using the correct key file.
   - Check if the encrypted file is intact and was not modified.
+
+- **"Key file 'secret.key' not found":**
+
+  - Ensure you've generated the key using `python script.py -g` before encrypting or decrypting with the stored key method.
 
 ---
 
