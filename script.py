@@ -2,7 +2,7 @@ import os
 import sys
 import getpass
 import base64
-import re  # Import the 're' module for regex
+import hashlib
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -40,33 +40,6 @@ def get_key_from_password(password_provided, salt):
     key = base64.urlsafe_b64encode(kdf.derive(password))
     return key
 
-def check_password_strength(password):
-    """
-    Checks if the password meets the complexity requirements.
-    Requirements:
-    - At least 8 characters
-    - At least one uppercase letter
-    - At least one lowercase letter
-    - At least one digit
-    - At least one special character
-    """
-    if len(password) < 8:
-        print("Password must be at least 8 characters long.")
-        return False
-    if not re.search(r"[A-Z]", password):
-        print("Password must contain at least one uppercase letter.")
-        return False
-    if not re.search(r"[a-z]", password):
-        print("Password must contain at least one lowercase letter.")
-        return False
-    if not re.search(r"\d", password):
-        print("Password must contain at least one digit.")
-        return False
-    if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-        print("Password must contain at least one special character.")
-        return False
-    return True
-
 def encrypt_file(file_name, key_method):
     """
     Encrypts a file using the specified key method ('key' or 'password').
@@ -92,16 +65,11 @@ def encrypt_file(file_name, key_method):
         print(f"File '{file_name}' encrypted successfully as '{encrypted_file_name}' using stored key.")
     elif key_method == 'password':
         # Use password-based key derivation
-        while True:
-            password = getpass.getpass("Enter password for encryption: ")
-            if not check_password_strength(password):
-                print("Please choose a stronger password.")
-                continue
-            confirm_password = getpass.getpass("Confirm password: ")
-            if password != confirm_password:
-                print("Passwords do not match.")
-                continue
-            break
+        password = getpass.getpass("Enter password for encryption: ")
+        confirm_password = getpass.getpass("Confirm password: ")
+        if password != confirm_password:
+            print("Passwords do not match.")
+            sys.exit(1)
         salt = os.urandom(16)
         key = get_key_from_password(password, salt)
         fernet = Fernet(key)
@@ -144,9 +112,6 @@ def decrypt_file(encrypted_file_name, key_method):
         print(f"File '{encrypted_file_name}' decrypted successfully as '{decrypted_file_name}' using stored key.")
     elif key_method == 'password':
         # Use password-based key derivation
-        if len(encrypted_data) < 16:
-            print("Encrypted file is too short to contain a salt.")
-            sys.exit(1)
         # Read the salt and the encrypted data
         salt = encrypted_data[:16]  # First 16 bytes are the salt
         encrypted = encrypted_data[16:]
