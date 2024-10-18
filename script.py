@@ -6,6 +6,9 @@ import re  # Import the 're' module for regex
 from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from tkinter import messagebox
+from customtkinter import CTkInputDialog
+from tkinter import simpledialog
 
 def generate_key():
     """
@@ -67,7 +70,7 @@ def check_password_strength(password):
         return False
     return True
 
-def encrypt_file(file_name, key_method):
+def encrypt_file(file_name, key_method, method):
     """
     Encrypts a file using the specified key method ('key' or 'password').
     """
@@ -75,11 +78,18 @@ def encrypt_file(file_name, key_method):
         with open(file_name, 'rb') as file:
             original = file.read()
     except FileNotFoundError:
-        print(f"File '{file_name}' not found.")
-        sys.exit(1)
+        if method == 1:
+            print(f"File '{file_name}' not found.")
+            sys.exit(1)
+        else:
+            messagebox.showerror("Error", f"File '{file_name}' not found.")
+            return False
     except Exception as e:
-        print(f"An error occurred while reading the file: {e}")
-        sys.exit(1)
+        if method == 1:
+            print(f"An error occurred while reading the file: {e}")
+            sys.exit(1)
+        else:
+            messagebox.showerror("Error", f"An error occurred while reading the file: {e}")
 
     if key_method == 'key':
         # Use stored Fernet key
@@ -89,17 +99,34 @@ def encrypt_file(file_name, key_method):
         encrypted_file_name = file_name + '.encrypted'
         with open(encrypted_file_name, 'wb') as encrypted_file:
             encrypted_file.write(encrypted)
-        print(f"File '{file_name}' encrypted successfully as '{encrypted_file_name}' using stored key.")
+        if method == 1:
+            print(f"File '{file_name}' encrypted successfully as '{encrypted_file_name}' using stored key.")
+        else:
+            messagebox.showinfo("Success", f"File '{file_name}' encrypted successfully as '{encrypted_file_name}' using stored key.")
     elif key_method == 'password':
         # Use password-based key derivation
         while True:
-            password = getpass.getpass("Enter password for encryption: ")
+            password = ''
+            if method == 1:
+                password = getpass.getpass("Enter password for encryption: ")
+            else:
+                password = simpledialog.askstring("Password", "Enter password for encryption: ")
             if not check_password_strength(password):
-                print("Please choose a stronger password.")
+                if method == 1:
+                    print("Please choose a stronger password.")
+                else:
+                    messagebox.showwarning("Warning", "Please choose a stronger password.")
                 continue
-            confirm_password = getpass.getpass("Confirm password: ")
+            confirm_password = ''
+            if method == 1:
+                confirm_password = getpass.getpass("Confirm password: ")
+            else:
+                password = simpledialog.askstring("Password", "Confirm password: ")
             if password != confirm_password:
-                print("Passwords do not match.")
+                if method == 1:
+                    print("Passwords do not match.")
+                else:
+                    messagebox.showwarning("Warning", "Passwords do not match.")
                 continue
             break
         salt = os.urandom(16)
@@ -110,12 +137,19 @@ def encrypt_file(file_name, key_method):
         with open(encrypted_file_name, 'wb') as encrypted_file:
             # Prepend the salt to the encrypted data
             encrypted_file.write(salt + encrypted)
-        print(f"File '{file_name}' encrypted successfully as '{encrypted_file_name}' using password-based key derivation.")
+        if method == 1:
+            print(f"File '{file_name}' encrypted successfully as '{encrypted_file_name}' using password-based key derivation.")
+        else:
+            messagebox.showinfo('success', f"File '{file_name}' encrypted successfully as '{encrypted_file_name}' using password-based key derivation.")
     else:
-        print("Invalid key method. Use 'key' or 'password'.")
-        sys.exit(1)
+        if method == 1:
+            print("Invalid key method. Use 'key' or 'password'.")
+            sys.exit(1)
+        else:
+            messagebox.showerror("Error", f"Invalid key method. Use 'key' or 'password'.")
+            return False
 
-def decrypt_file(encrypted_file_name, key_method):
+def decrypt_file(encrypted_file_name, key_method, method):
     """
     Decrypts an encrypted file using the specified key method ('key' or 'password').
     """
@@ -123,11 +157,18 @@ def decrypt_file(encrypted_file_name, key_method):
         with open(encrypted_file_name, 'rb') as enc_file:
             encrypted_data = enc_file.read()
     except FileNotFoundError:
-        print(f"File '{encrypted_file_name}' not found.")
-        sys.exit(1)
+        if method == 1:
+            print(f"File '{encrypted_file_name}' not found.")
+            sys.exit(1)
+        else:
+            messagebox.showerror("Error", f"File '{encrypted_file_name}' not found.")
+            return False
     except Exception as e:
-        print(f"An error occurred while reading the encrypted file: {e}")
-        sys.exit(1)
+        if method == 1:
+            print(f"An error occurred while reading the file: {e}")
+            sys.exit(1)
+        else:
+            messagebox.showerror("Error", f"An error occurred while reading the file: {e}")
 
     if key_method == 'key':
         # Use stored Fernet key
@@ -136,35 +177,59 @@ def decrypt_file(encrypted_file_name, key_method):
         try:
             decrypted = fernet.decrypt(encrypted_data)
         except InvalidToken:
-            print("Decryption failed. Invalid key or corrupted file.")
-            sys.exit(1)
+            if method == 1:
+                print("Decryption failed. Invalid key or corrupted file.")
+                sys.exit(1)
+            else:
+                messagebox.showerror("Error", "Decryption failed. Invalid key or corrupted file.")
+                return False
         decrypted_file_name = encrypted_file_name.replace('.encrypted', '.decrypted')
         with open(decrypted_file_name, 'wb') as dec_file:
             dec_file.write(decrypted)
-        print(f"File '{encrypted_file_name}' decrypted successfully as '{decrypted_file_name}' using stored key.")
+        if method == 1:
+            print(f"File '{encrypted_file_name}' decrypted successfully as '{decrypted_file_name}' using stored key.")
+        else:
+            messagebox.showinfo('success', f"File '{encrypted_file_name}' decrypted successfully as '{decrypted_file_name}' using stored key.")
     elif key_method == 'password':
         # Use password-based key derivation
         if len(encrypted_data) < 16:
-            print("Encrypted file is too short to contain a salt.")
-            sys.exit(1)
+            if method == 1:
+                print("Encrypted file is too short to contain a salt.")
+                sys.exit(1)
+            else:
+                messagebox.showerror("Error", "Encrypted file is too short to contain a salt.")
+                return False
         # Read the salt and the encrypted data
         salt = encrypted_data[:16]  # First 16 bytes are the salt
         encrypted = encrypted_data[16:]
-        password = getpass.getpass("Enter password for decryption: ")
+        if method == 1:
+            password = getpass.getpass("Enter password for decryption: ")
+        else:
+            password = simpledialog.askstring("Password", "Enter password for decryption: ")
         key = get_key_from_password(password, salt)
         fernet = Fernet(key)
         try:
             decrypted = fernet.decrypt(encrypted)
         except InvalidToken:
-            print("Decryption failed. Incorrect password or corrupted file.")
-            sys.exit(1)
+            if method == 1:
+                print("Decryption failed. Incorrect password or corrupted file.")
+                sys.exit(1)
+            else:
+                messagebox.showerror("Error", "Decryption failed. Incorrect password or corrupted file.")
         decrypted_file_name = encrypted_file_name.replace('.encrypted', '.decrypted')
         with open(decrypted_file_name, 'wb') as dec_file:
             dec_file.write(decrypted)
-        print(f"File '{encrypted_file_name}' decrypted successfully as '{decrypted_file_name}' using password-based key derivation.")
+        if method == 1:
+            print(f"File '{encrypted_file_name}' decrypted successfully as '{decrypted_file_name}' using password-based key derivation.")
+        else:
+            messagebox.showinfo('success', f"File '{encrypted_file_name}' decrypted successfully as '{decrypted_file_name}' using password-based key derivation.")
     else:
-        print("Invalid key method. Use 'key' or 'password'.")
-        sys.exit(1)
+        if method == 1:
+            print("Invalid key method. Use 'key' or 'password'.")
+            sys.exit(1)
+        else:
+            messagebox.showerror("Error", f"Invalid key method. Use 'key' or 'password'.")
+            return False
 
 def main():
     if len(sys.argv) < 2:
