@@ -1,5 +1,5 @@
 import customtkinter as ctk
-
+import script
 app = ctk.CTk()
 
 def CenterWindowToDisplay(Screen: ctk, width: int, height: int, scale_factor: float = 1.0):
@@ -32,10 +32,14 @@ def Dbrowse():
     decryptfilename.insert(0, filename)
 
 def EwithSecretKey():
-    pass
+    file = encryptfilename.get()
+    script.encrypt_file(file, 'key')
+
 
 def DwithSecretKey():
-    pass
+    file = encryptfilename.get()
+    script.decrypt_file(file, 'key')
+
 
 def EwithPassword():
     pass
@@ -56,8 +60,8 @@ encryptfilename.pack(side=ctk.LEFT)
 encryptbrowsebutton = ctk.CTkButton(encrypt_frame, text='Browse', command=Ebrowse)
 encryptbrowsebutton.pack(side=ctk.LEFT)
 
-encryptwithpass = ctk.CTkButton(key_frame, text='Encrypt')
-encryptwithpass.pack(anchor=ctk.W, padx=20)
+encryptwithkey = ctk.CTkButton(key_frame, text='Encrypt', command=EwithSecretKey)
+encryptwithkey.pack(anchor=ctk.W, padx=20)
 
 decryptfileLabel = ctk.CTkLabel(key_frame, text="Decrypt File", font=("Helvetica", 15))
 decryptfileLabel.pack(anchor=ctk.NW, padx=(20,0), pady=(5,0))
@@ -71,8 +75,8 @@ decryptfilename.pack(side=ctk.LEFT)
 decryptbrowsebutton = ctk.CTkButton(decrypt_frame, text='Browse', command=Dbrowse)
 decryptbrowsebutton.pack(side=ctk.LEFT)
 
-decryptwithpass = ctk.CTkButton(key_frame, text='Decrypt')
-decryptwithpass.pack(anchor=ctk.W, padx=20)
+decryptwithkey = ctk.CTkButton(key_frame, text='Decrypt', command=DwithSecretKey)
+decryptwithkey.pack(anchor=ctk.W, padx=20)
 
 
 app.mainloop()
