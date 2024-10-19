@@ -17,7 +17,8 @@ def generate_key():
     Generates a new Fernet key and saves it to 'secret.key' file.
     """
     key = Fernet.generate_key()
-    with open("secret.key", "wb") as key_file:
+    key_path = os.path.join(os.path.dirname(__file__), 'secret.key')
+    with open(key_path, 'wb') as key_file:
         key_file.write(key)
     print("Encryption key generated and saved to 'secret.key'.")
 
@@ -27,7 +28,10 @@ def load_key(presentation_method):
     Loads the Fernet key from 'secret.key' file.
     """
     try:
-        return open('secret.key', 'rb').read()
+        key_path = os.path.join(os.path.dirname(__file__), 'secret.key')
+        with open(key_path, 'rb') as key_file:
+            key = key_file.read()
+        return key
     except FileNotFoundError:
         if presentation_method == 1:
             print("Key file 'secret.key' not found. Please generate a key first using '-g' option.")
