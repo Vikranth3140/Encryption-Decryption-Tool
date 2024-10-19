@@ -7,7 +7,7 @@ from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.primitives import hashes, hmac
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from tkinter import messagebox
-from tkinter import simpledialog
+from customtkinter import CTkInputDialog
 
 HMAC_KEY_LENGTH = 32
 
@@ -117,6 +117,7 @@ def encrypt_file(file_name, key_method, Presentaion_method, root=None):
             sys.exit(1)
         else:
             messagebox.showerror("Error", f"An error occurred while reading the file: {e}", parent=root)
+            return True
 
     if key_method == "key":
         key = load_key(presentation_method=Presentaion_method)
@@ -125,17 +126,23 @@ def encrypt_file(file_name, key_method, Presentaion_method, root=None):
             if Presentaion_method == 1:
                 password = getpass.getpass("Enter password for encryption: ")
             else:
-                password = simpledialog.askstring("Password", "Enter password for encryption: ", parent=root)
+                password = CTkInputDialog(title="Password", text="Enter password for encryption: ").get_input()
             if not check_password_strength(password):
                 if Presentaion_method == 1:
                     print("Please choose a stronger password.")
                 else:
-                    messagebox.showwarning("Warning", "Please choose a stronger password.", parent=root)
+                    messagebox.showwarning("Warning", "Please choose a stronger password.\n"
+                                                      "At least 8 characters long.\n"
+                                                      "Contains at least one uppercase letter (A-Z),\n"
+                                                      "Contains at least one lowercase letter (a-z),\n "
+                                                      "Contains at least one digit (0-9),\n "
+                                                      "Contains at least one special character."
+                                                    , parent=root)
                 continue
             if Presentaion_method == 1:
                 confirm_password = getpass.getpass("Confirm password: ")
             else:
-                confirm_password = simpledialog.askstring("Password", "Confirm password: ", parent=root)
+                confirm_password = CTkInputDialog(title="Password", text="Confirm password: ").get_input()
             if password != confirm_password:
                 if Presentaion_method == 1:
                     print("Passwords do not match.")
@@ -205,7 +212,7 @@ def decrypt_file(encrypted_file_name, key_method, Presentaion_method, root=None)
         if Presentaion_method == 1:
             password = getpass.getpass("Enter password for decryption: ")
         else:
-            password = simpledialog.askstring("Password", "Enter password for decryption: ", parent=root)
+            password = CTkInputDialog(title="Password", text="Enter password for decryption: ").get_input()
         key = get_key_from_password(password, salt)
 
     hmac_size = hashes.SHA256().digest_size
