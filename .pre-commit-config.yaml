@@ -24,7 +24,7 @@ repos:
     rev: v2.5.1
     hooks:
       - id: prettier
-        files: \.(md|yaml|yml)$  # Formats Markdown, and YAML files
+        files: \.(md)$  # Formats Markdown files
 
   - repo: https://github.com/pre-commit/pygrep-hooks
     rev: v1.7.0
