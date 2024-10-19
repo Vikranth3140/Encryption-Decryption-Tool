@@ -100,11 +100,12 @@ python script.py -e -p <filename>
 - The script will prompt you to enter and confirm a password.
 
 ## Password Strength Requirements
-  - At least **8 characters** long.
-  - Contains at least one **uppercase letter** (`A-Z`).
-  - Contains at least one **lowercase letter** (`a-z`).
-  - Contains at least one **digit** (`0-9`).
-  - Contains at least one **special character** (e.g., `!@#$%^&*()`).
+
+- At least **8 characters** long.
+- Contains at least one **uppercase letter** (`A-Z`).
+- Contains at least one **lowercase letter** (`a-z`).
+- Contains at least one **digit** (`0-9`).
+- Contains at least one **special character** (e.g., `!@#$%^&*()`).
 - If the password doesn't meet these requirements, the script will prompt you to enter a stronger password.
 - A unique, random salt is generated and prepended to the encrypted file.
 
