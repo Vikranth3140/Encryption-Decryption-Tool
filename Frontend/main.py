@@ -1,39 +1,26 @@
 import os
 import sys
 import customtkinter as ctk
-from tkinter import messagebox as msg
+import tkinter as tk
+from tkinter import messagebox as msg, simpledialog
 
-# Add the parent directory to sys.path to import script from the parent directory
+# Add the parent directory to sys.path to import from encryption_decryption_tool
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-# Import the encryption/decryption functionality from script.py
-import script
+from encryption_decryption_tool import generate_key, load_key, encrypt_file, decrypt_file, get_key_from_password, retrieve_salt_from_file
 
 # Initialize the CustomTkinter app
 app = ctk.CTk()
 
-
-def CenterWindowToDisplay(
-    Screen: ctk, width: int, height: int, scale_factor: float = 1.0
-):
+def CenterWindowToDisplay(Screen, width, height, scale_factor=1.0):
     """
     Centers the application window on the main display/monitor.
-
-    Parameters:
-        Screen (ctk): The application window.
-        width (int): The width of the window.
-        height (int): The height of the window.
-        scale_factor (float): Scale factor to adjust the placement.
-
-    Returns:
-        str: Geometry for the window with width, height, and position on screen.
     """
     screen_width = Screen.winfo_screenwidth()
     screen_height = Screen.winfo_screenheight()
     x = int(((screen_width / 2) - (width / 2)) * scale_factor)
     y = int(((screen_height / 2) - (height / 1.5)) * scale_factor)
     return f"{width}x{height}+{x}+{y}"
-
 
 # Set the geometry of the window and the title
 app.geometry(CenterWindowToDisplay(app, 650, 400, app._get_window_scaling()))
@@ -47,86 +34,105 @@ heading_label = ctk.CTkLabel(
 )
 heading_label.pack(anchor=ctk.CENTER, fill=ctk.X)
 
-
 # File Browsing functions for Encryption and Decryption
-
-
 def Encrypt_browse_key():
     """Open a file dialog to select a file for encryption with a secret key."""
     encryptfilename.delete(0, ctk.END)
     filename = ctk.filedialog.askopenfilename(
-        filetypes=[("Encryption", "*.txt*"), ("Decryption", "*.decrypted*")]
+        filetypes=[("Text files", "*.txt*"), ("All files", "*.*")]
     )
     encryptfilename.insert(0, filename)
-
 
 def Decrypt_browse_key():
     """Open a file dialog to select a file for decryption with a secret key."""
     decryptfilename.delete(0, ctk.END)
     filename = ctk.filedialog.askopenfilename(
-        filetypes=[("Decryption", "*.encrypted*")]
+        filetypes=[("Encrypted files", "*.encrypted*")]
     )
     decryptfilename.insert(0, filename)
 
-
 def Encrypt_browse_pass():
     """Open a file dialog to select a file for encryption with a password."""
-    try:
-        encryptfilenamepass.delete(0, ctk.END)
-        filename = ctk.filedialog.askopenfilename(
-            filetypes=[("Encryption", "*.txt*"), ("Decryption", "*.decrypted*")]
-        )
-        encryptfilenamepass.insert(0, filename)
-    except TypeError:
-        msg.showinfo("INFO", "Use correct password")
-
+    encryptfilenamepass.delete(0, ctk.END)
+    filename = ctk.filedialog.askopenfilename(
+        filetypes=[("Text files", "*.txt*"), ("All files", "*.*")]
+    )
+    encryptfilenamepass.insert(0, filename)
 
 def Decrypt_browse_pass():
     """Open a file dialog to select a file for decryption with a password."""
-    try:
-        decryptfilenamepass.delete(0, ctk.END)
-        filename = ctk.filedialog.askopenfilename(
-            filetypes=[("Decryption", "*.encrypted*")]
-        )
-        decryptfilenamepass.insert(0, filename)
-    except TypeError:
-        msg.showinfo("INFO", "Use correct password")
-
+    decryptfilenamepass.delete(0, ctk.END)
+    filename = ctk.filedialog.askopenfilename(
+        filetypes=[("Encrypted files", "*.encrypted*")]
+    )
+    decryptfilenamepass.insert(0, filename)
 
 # Encryption/Decryption functions
-
-
 def Encrypt_with_SecretKey():
     """
-    Calls the encrypt_file function from script.py to encrypt the selected file using a secret key.
+    Calls the encrypt_file function to encrypt the selected file using a secret key.
     """
     file = encryptfilename.get()
-    script.encrypt_file(file, "key", 0, app)
-
+    key = load_key()  # Load the secret key
+    try:
+        encrypt_file(file, key)
+        msg.showinfo("Success", f"File '{file}' encrypted successfully.")
+    except Exception as e:
+        msg.showerror("Error", f"Encryption failed: {str(e)}")
 
 def Decrypt_with_SecretKey():
     """
-    Calls the decrypt_file function from script.py to decrypt the selected file using a secret key.
+    Calls the decrypt_file function to decrypt the selected file using a secret key.
     """
     file = decryptfilename.get()
-    script.decrypt_file(file, "key", 0, app)
-
+    key = load_key()  # Load the secret key
+    try:
+        decrypt_file(file, key)
+        msg.showinfo("Success", f"File '{file}' decrypted successfully.")
+    except Exception as e:
+        msg.showerror("Error", f"Decryption failed: {str(e)}")
 
 def Encrypt_with_Password():
     """
-    Calls the encrypt_file function from script.py to encrypt the selected file using a password.
+    Calls the encrypt_file function to encrypt the selected file using a password.
+    Prompts for password confirmation to ensure no mismatches.
     """
     file = encryptfilenamepass.get()
-    script.encrypt_file(file, "password", 0, app)
 
+    # Ask the user to enter the password
+    password = simpledialog.askstring("Password", "Enter password for encryption", show="*")
+    
+    if password:
+        # Ask for password confirmation
+        confirm_password = simpledialog.askstring("Password", "Confirm password", show="*")
+
+        # Check if the passwords match
+        if password != confirm_password:
+            msg.showerror("Error", "Passwords do not match. Please try again.")
+            return  # Exit the function early if passwords don't match
+
+        # If passwords match, proceed with encryption
+        key, salt = get_key_from_password(password)
+        try:
+            encrypt_file(file, key)
+            msg.showinfo("Success", f"File '{file}' encrypted successfully.")
+        except Exception as e:
+            msg.showerror("Error", f"Encryption failed: {str(e)}")
 
 def Decrypt_with_Password():
     """
-    Calls the decrypt_file function from script.py to decrypt the selected file using a password.
+    Calls the decrypt_file function to decrypt the selected file using a password.
     """
     file = decryptfilenamepass.get()
-    script.decrypt_file(file, "password", 0, app)
-
+    password = simpledialog.askstring("Password", "Enter password for decryption", show="*")
+    if password:
+        salt = retrieve_salt_from_file(file)
+        key, _ = get_key_from_password(password, salt)
+        try:
+            decrypt_file(file, key)
+            msg.showinfo("Success", f"File '{file}' decrypted successfully.")
+        except Exception as e:
+            msg.showerror("Error", f"Decryption failed: {str(e)}")
 
 # GUI Layout for Encryption and Decryption using Secret Key
 
@@ -140,7 +146,6 @@ encryptfileLabel.pack(anchor=ctk.NW, padx=(20, 0), pady=(5, 0))
 encrypt_frame = ctk.CTkFrame(key_frame)
 encrypt_frame.pack(anchor=ctk.NW, padx=20)
 
-# Entry field and browse button for encryption
 encryptfilename = ctk.CTkEntry(encrypt_frame, width=450, font=("Helvetica", 15))
 encryptfilename.pack(side=ctk.LEFT)
 
@@ -161,7 +166,6 @@ decryptfileLabel.pack(anchor=ctk.NW, padx=(20, 0), pady=(5, 0))
 decrypt_frame = ctk.CTkFrame(key_frame)
 decrypt_frame.pack(anchor=ctk.NW, padx=20)
 
-# Entry field and browse button for decryption
 decryptfilename = ctk.CTkEntry(decrypt_frame, width=450, font=("Helvetica", 15))
 decryptfilename.pack(side=ctk.LEFT)
 
@@ -189,7 +193,6 @@ encryptfileLabelpass.pack(anchor=ctk.NW, padx=(20, 0), pady=(5, 0))
 encrypt_framepass = ctk.CTkFrame(password_frame)
 encrypt_framepass.pack(anchor=ctk.NW, padx=20)
 
-# Entry field and browse button for encryption
 encryptfilenamepass = ctk.CTkEntry(encrypt_framepass, width=450, font=("Helvetica", 15))
 encryptfilenamepass.pack(side=ctk.LEFT)
 
@@ -212,7 +215,6 @@ decryptfileLabelpass.pack(anchor=ctk.NW, padx=(20, 0), pady=(5, 0))
 decrypt_framepass = ctk.CTkFrame(password_frame)
 decrypt_framepass.pack(anchor=ctk.NW, padx=20)
 
-# Entry field and browse button for decryption
 decryptfilenamepass = ctk.CTkEntry(decrypt_framepass, width=450, font=("Helvetica", 15))
 decryptfilenamepass.pack(side=ctk.LEFT)
 
