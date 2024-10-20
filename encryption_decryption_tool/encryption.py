@@ -24,13 +24,26 @@ def load_key():
     return key
 
 def encrypt_file(file_name, key):
-    """Encrypts the given file using Fernet encryption."""
+    """
+    Encrypts the file with the given key.
+    """
+    with open(file_name, "rb") as f:
+        data = f.read()
+
+    # Encrypt the file content
     fernet = Fernet(key)
-    with open(file_name, "rb") as file:
-        original = file.read()
-    encrypted = fernet.encrypt(original)
-    with open(file_name + ".encrypted", "wb") as encrypted_file:
-        encrypted_file.write(encrypted)
+    encrypted = fernet.encrypt(data)
+
+    # If we are using a password-derived key, we need to store the salt
+    encrypted_file_name = file_name + ".encrypted"
+    with open(encrypted_file_name, "wb") as f:
+        # If the key is derived from a password, append the salt to the start of the file
+        if isinstance(key, tuple):
+            salt = key[1]  # Extract the salt if key is a tuple (key, salt)
+            f.write(salt)  # Store salt at the beginning of the file
+            f.write(encrypted)  # Write the encrypted content
+        else:
+            f.write(encrypted)
 
 def get_key_from_password(password, salt=None):
     """
