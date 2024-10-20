@@ -27,11 +27,16 @@ def get_key_from_password(password, salt=None):
     if salt is None:
         salt = os.urandom(16)  # Generate a new salt if none is provided
 
-    # Ensure the password is a string before encoding
-    if isinstance(password, bytes):
-        password_bytes = password  # If password is already in bytes, use it as is
+    # Ensure the password is treated as a string and encoded consistently
+    if isinstance(password, str):
+        password_bytes = password.encode()  # Convert password to bytes if it's a string
     else:
-        password_bytes = password.encode()  # If it's a string, encode to bytes
+        password_bytes = password  # If it's already bytes, use as-is
+
+    # Log the password and salt for debugging
+    print(f"Password (original): {password}")
+    print(f"Password (encoded as bytes): {password_bytes}")
+    print(f"Salt used (hex): {salt.hex()}")
 
     kdf = PBKDF2HMAC(
         algorithm=hashes.SHA256(),
@@ -39,7 +44,9 @@ def get_key_from_password(password, salt=None):
         salt=salt,
         iterations=100000,
     )
-    key = base64.urlsafe_b64encode(kdf.derive(password_bytes))
+    key = base64.urlsafe_b64encode(kdf.derive(password_bytes))  # Derive the key
+    print(f"Derived key (encoded): {key}")
+
     return key, salt  # Return both the key and the salt
 
 def encrypt_file(file_name, key):
