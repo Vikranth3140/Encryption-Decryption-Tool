@@ -19,8 +19,11 @@ def decrypt_file(file_name, key):
             salt = f.read(16)  # Read the salt from the beginning of the file
             encrypted = f.read()  # Read the remaining encrypted data
             key, _ = get_key_from_password(key[0], salt)  # Re-derive the key using the salt
+            print(f"Decryption salt (hex): {salt.hex()}")  # Print the salt
         else:
             encrypted = f.read()  # For key-based encryption, just read the encrypted data
+
+    print(f"Decryption key (derived): {key}")
 
     fernet = Fernet(key)
     try:
