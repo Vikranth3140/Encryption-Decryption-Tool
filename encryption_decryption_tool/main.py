@@ -1,5 +1,6 @@
 import argparse
-from encryption_decryption_tool import encrypt_file, decrypt_file, generate_key, load_key, get_key_from_password, retrieve_salt_from_file
+from encryption_decryption_tool.encryption import encrypt_file, generate_key, load_key, get_key_from_password
+from encryption_decryption_tool.decryption import decrypt_file, retrieve_salt_from_file
 
 def check_password_strength(password):
     """
@@ -69,7 +70,7 @@ def main():
         elif args.method == "password":
             password = get_password_from_user(confirm=True)
             key, salt = get_key_from_password(password)
-            encrypt_file(args.file, key)
+            encrypt_file(args.file, (key, salt))
             print(f"File '{args.file}' encrypted successfully using a password!")
 
     elif args.command == "decrypt":
@@ -81,7 +82,7 @@ def main():
             password = get_password_from_user()
             salt = retrieve_salt_from_file(args.file)
             key, _ = get_key_from_password(password, salt)
-            decrypt_file(args.file, key)
+            decrypt_file(args.file, (key, salt))
             print(f"File '{args.file}' decrypted successfully using a password!")
 
 if __name__ == "__main__":
