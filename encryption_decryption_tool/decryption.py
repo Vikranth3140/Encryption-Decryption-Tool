@@ -2,28 +2,21 @@ import os
 from cryptography.fernet import Fernet, InvalidToken
 from encryption_decryption_tool.encryption import get_key_from_password
 
+
 def load_key():
     """Loads the key from the 'secret.key' file."""
-    key_path = os.path.join(os.path.dirname(__file__), "secret.key")
-    with open(key_path, "rb") as key_file:
-        key = key_file.read()
-    return key
+    return open("secret.key", "rb").read()
+
 
 def decrypt_file(file_name, key):
-    """
-    Decrypts the file with the given key.
-    If the key is password-derived, the salt is extracted from the file.
-    """
+    """Decrypts the file with the given key."""
     with open(file_name, "rb") as f:
         if isinstance(key, tuple):
-            salt = f.read(16)  # Read the salt from the beginning of the file
+            salt = f.read(16)  # Extract the salt from the beginning of the file
             encrypted = f.read()  # Read the remaining encrypted data
-            key, _ = get_key_from_password(key[0], salt)  # Re-derive the key using the salt
-            print(f"Decryption salt (hex): {salt.hex()}")  # Print the salt
+            key, _ = get_key_from_password(key[0], salt)  # Derive the key again using the salt
         else:
             encrypted = f.read()  # For key-based encryption, just read the encrypted data
-
-    print(f"Decryption key (derived): {key}")
 
     fernet = Fernet(key)
     try:
@@ -36,22 +29,3 @@ def decrypt_file(file_name, key):
         f.write(decrypted)
 
     print(f"File '{file_name}' decrypted successfully.")
-
-def retrieve_salt_from_file(file_name):
-    """
-    Reads the salt from the encrypted file (if stored at the beginning of the file).
-    Assumes the salt is the first 16 bytes of the encrypted file.
-    
-    Args:
-        file_name (str): The name of the encrypted file.
-    
-    Returns:
-        bytes: The extracted salt from the encrypted file.
-    """
-    try:
-        with open(file_name, "rb") as encrypted_file:
-            return encrypted_file.read(16)  # Assuming the first 16 bytes are the salt
-    except FileNotFoundError:
-        raise FileNotFoundError(f"File '{file_name}' not found.")
-    except Exception as e:
-        raise ValueError(f"Failed to retrieve salt from file: {str(e)}")

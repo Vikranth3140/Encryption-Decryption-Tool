@@ -1,16 +1,10 @@
 import argparse
 from encryption_decryption_tool.encryption import encrypt_file, generate_key, load_key, get_key_from_password
-from encryption_decryption_tool.decryption import decrypt_file, retrieve_salt_from_file
+from encryption_decryption_tool.decryption import decrypt_file
+
 
 def check_password_strength(password):
-    """
-    Checks if the password meets the complexity requirements:
-    - At least 8 characters long
-    - Contains at least one uppercase letter
-    - Contains at least one lowercase letter
-    - Contains at least one digit
-    - Contains at least one special character
-    """
+    """Checks if the password meets complexity requirements."""
     import re
     if len(password) < 8:
         return False
@@ -24,25 +18,23 @@ def check_password_strength(password):
         return False
     return True
 
+
 def get_password_from_user(confirm=False):
-    """
-    Get a password from the user, optionally confirming it.
-    Ensures password strength and prompts for confirmation.
-    """
+    """Prompts the user to input a password, optionally confirming it."""
     password = input("Enter password: ")
-    
-    # Check if password meets constraints
+
     if not check_password_strength(password):
         print("Password must be at least 8 characters long and include uppercase, lowercase, a number, and a special character.")
-        return get_password_from_user(confirm)  # Recursive call until valid password is entered
+        return get_password_from_user(confirm)  # Recursively prompt until a valid password is entered
 
     if confirm:
         confirm_password = input("Confirm password: ")
         if password != confirm_password:
             print("Passwords do not match. Please try again.")
-            return get_password_from_user(confirm)  # Recursive call until passwords match
+            return get_password_from_user(confirm)  # Recursively prompt until passwords match
 
     return password
+
 
 def main():
     parser = argparse.ArgumentParser(description="Encrypt and Decrypt files using CLI")
@@ -80,10 +72,12 @@ def main():
             print(f"File '{args.file}' decrypted successfully using a key!")
         elif args.method == "password":
             password = get_password_from_user()
-            salt = retrieve_salt_from_file(args.file)
+            with open(args.file, "rb") as f:
+                salt = f.read(16)  # Read the salt from the file
             key, _ = get_key_from_password(password, salt)
             decrypt_file(args.file, (key, salt))
             print(f"File '{args.file}' decrypted successfully using a password!")
+
 
 if __name__ == "__main__":
     main()
